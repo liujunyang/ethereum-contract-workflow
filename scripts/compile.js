@@ -12,6 +12,11 @@ const contractPath = path.resolve(__dirname, '../contracts', 'Car.sol')
 const contractSource = fs.readFileSync(contractPath, 'utf8')
 const result = solc.compile(contractSource, 1)
 
+// check errors
+if (Array.isArray(result.errors) && result.errors.length) {
+  throw new Error(result.errors[0])
+}
+
 // save to disk
 Object.keys(result.contracts).forEach(name => {
   const contractName = name.replace(/^:/, '')
