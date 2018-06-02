@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/liujunyang/ethereum-contract-workflow/issues"
   },
-  "homepage": "https://github.com/liujunyang/ethereum-contract-workflow#readme"
+  "homepage": "https://github.com/liujunyang/ethereum-contract-workflow#readme",
+  "dependencies": {
+    "solc": "^0.4.24"
+  }
 }
