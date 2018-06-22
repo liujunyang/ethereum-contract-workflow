@@ -31,12 +31,15 @@ library SafeMath {
 }
 
 contract Project {
+    using SafeMath for uint;
+
     struct Payment {
         string description;
         uint amount;
         address receiver;
         bool completed;
-        address[] voters;
+        mapping(address => bool) voters;
+        uint voterCount;
     }
 
     address public owner;
@@ -44,8 +47,14 @@ contract Project {
     uint public minInvest;
     uint public maxInvest;
     uint public goal;
-    address[] public investors;
+    uint public investorCount;
+    mapping(address => uint) investors;
     Payment[] public payments;
+
+    modifier ownerOnly() {
+        require(msg.sender == owner);
+        _;
+    }
 
     constructor(string _description, uint _minInvest, uint _maxInvest, uint _goal) public {
         owner = msg.sender;
@@ -58,18 +67,22 @@ contract Project {
     function contribute() public payable {
         require(msg.value > minInvest);
         require(msg.value < maxInvest);
-        require(address(this).balance < goal);
 
-        investors.push(msg.sender);
+        uint newBalance = 0;
+        newBalance = address(this).balance.add(msg.value);
+        require(newBalance <= goal);
+
+        investors[msg.sender] = msg.value;
+        investorCount += 1;
     }
 
-    function createPayment(string _description, uint _amount, address _receiver) public {
+    function createPayment(string _description, uint _amount, address _receiver) ownerOnly public {
         Payment memory newPayment = Payment({
             description: _description,
             amount: _amount,
             receiver: _receiver,
             completed: false,
-            voters: new address[](0)
+            voterCount: 0
         });
 
         payments.push(newPayment);
@@ -79,39 +92,20 @@ contract Project {
         Payment storage payment = payments[index];
 
         // must be investor to vote
-        bool isInvestor = false;
-
-        for (uint i = 0; i < investors.length; i++) {
-            isInvestor = investors[i] == msg.sender;
-
-            if (isInvestor) {
-                break;
-            }
-        }
-
-        require(isInvestor);
+        require(investors[msg.sender] > 0);
 
         // can not vote twice
-        bool hasVoted = false;
-
-        for (uint j = 0; j < payment.voters.length; j++) {
-            hasVoted = payment.voters[j] == msg.sender;
-
-            if (isInvestor) {
-                hasVoted;
-            } 
-        }
-
-        require(!hasVoted);
-
-        payment.voters.push(msg.sender);
+        require(!payment.voters[msg.sender]);
+        payment.voters[msg.sender] = true;
+        payment.voterCount += 1;
     }
 
-    function doPayment(uint index) public {
+    function doPayment(uint index) ownerOnly public {
         Payment storage payment = payments[index];
 
         require(!payment.completed);
-        require(payment.voters.length > (investors.length / 2));
+        require(address(this).balance >= payment.amount);
+        require(payment.voterCount > (investorCount / 2));
 
         payment.receiver.transfer(payment.amount);
         payment.completed = true;
