@@ -62,7 +62,7 @@ contract Project {
     uint public maxInvest;
     uint public goal;
     uint public investorCount;
-    mapping(address => uint) investors;
+    mapping(address => uint) public investors;
     Payment[] public payments;
 
     modifier ownerOnly() {

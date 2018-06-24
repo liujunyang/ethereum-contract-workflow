@@ -1,6 +1,7 @@
 const assert = require('assert')
 const path = require('path')
 const ganache = require('ganache-cli')
+const BigNumber = require('bignumber.js')
 const Web3 = require('web3')
 
 // 配置 provider 拿到 bytecode
@@ -54,6 +55,46 @@ describe('Project Contract', () => {
     assert.equal(minInvest, 100)
     assert.equal(maxInvest, 10000)
     assert.equal(goal, 1000000)
+  })
+
+  it('should allow investor to contribute', async () => {
+    const investor = accounts[1]
+
+    await project.methods.contribute().send({
+      from: investor,
+      value: '200'
+    })
+
+    const amount = await project.methods.investors(investor).call()
+    assert.ok(amount == '200')
+  })
+
+  it('should require minInvest', async () => {
+    try {
+      const investor = accounts[1]
+
+      await project.methods.contribute().send({
+        from: investor,
+        value: '10'
+      })
+      assert.ok(false)
+    } catch (error) {
+      assert.ok(error)
+    }
+  })
+
+  it('should require maxInvest', async () => {
+    try {
+      const investor = accounts[1]
+
+      await project.methods.contribute().send({
+        from: investor,
+        value: '100000'
+      })
+      assert.ok(false)
+    } catch (error) {
+      assert.ok(error)
+    }
   })
 
 })
