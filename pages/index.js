@@ -1,15 +1,47 @@
 import React from 'react'
-import { Grid, Button, Typography, Card, CardContent, CardActions } from '@material-ui/core'
+import { Grid, Button, Typography, Card, CardContent, CardActions, LinearProgress } from '@material-ui/core'
 
 import { Link } from '../routes'
 import web3 from '../libs/web3'
 import ProjectList from '../libs/projectList'
+import Project from '../libs/project'
 import withRoot  from '../libs/withRoot'
 import Layout from '../components/Layout'
+import InfoBlock from '../components/InfoBlock'
 
 class Index extends React.Component {
   static async getInitialProps({req}) {
-    const projects = await ProjectList.methods.getProjects().call()
+    const addressList = await ProjectList.methods.getProjects().call()
+    console.log({addressList})
+    const summaryList = await Promise.all(
+      addressList.map(address => 
+        Project(address)
+          .methods.getSummary()
+          .call()
+      )
+    )
+
+    console.log({summaryList})
+
+    const projects = addressList.map((address, i) => {
+      const [description, minInvest, maxInvest, goal, balance, investorCount, paymentCount, owner] = Object.values(
+        summaryList[i]
+      );
+
+      return {
+        address,
+        description,
+        minInvest,
+        maxInvest,
+        goal,
+        balance,
+        investorCount,
+        paymentCount,
+        owner,
+      };
+    });
+
+    console.log(projects);
     return {projects}
   }
 
@@ -25,22 +57,30 @@ class Index extends React.Component {
   }
 
   renderProject(project) {
+    const progress = project.balance / project.goal * 100
     return (
-      <Grid item md={4} key={project}>
+      <Grid item md={6} key={project.address}>
         <Card>
           <CardContent>
             <Typography gutterBottom variant="headline" component="h2">
-              {project}
+              {project.description}
             </Typography>
-            <Typography component="p">{project}</Typography>
+            <LinearProgress style={{ margin: '10px 0' }} color="primary" variant="determinate" value={progress} />
+            <Grid container spacing={16}>
+              <InfoBlock title={`${web3.utils.fromWei(project.goal, 'ether')} ETH`} description="募资上限" />
+              <InfoBlock title={`${web3.utils.fromWei(project.minInvest, 'ether')} ETH`} description="最小投资金额" />
+              <InfoBlock title={`${web3.utils.fromWei(project.maxInvest, 'ether')} ETH`} description="最大投资金额" />
+              <InfoBlock title={`${project.investorCount}人`} description="参投人数" />
+              <InfoBlock title={`${web3.utils.fromWei(project.balance, 'ether')} ETH`} description="已募资金额" />
+            </Grid>
           </CardContent>
           <CardActions>
-            <Link route={`/projects/${project}`}>
+            <Link route={`/projects/${project.address}`}>
               <Button size="small" color="primary">
                 立即投资
               </Button>
             </Link>
-            <Link route={`/projects/${project}`}>
+            <Link route={`/projects/${project.address}`}>
               <Button size="small" color="secondary">
                 查看详情
               </Button>
