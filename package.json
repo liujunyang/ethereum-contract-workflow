@@ -8,7 +8,10 @@
     "pretest": "npm run compile",
     "test": "mocha tests/",
     "predeploy": "npm run compile",
-    "deploy": "mocha tests/ && node scripts/deploy.js"
+    "deploy": "mocha tests/ && node scripts/deploy.js",
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "NODE_ENV=production node server.js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +26,10 @@
   "homepage": "https://github.com/liujunyang/ethereum-contract-workflow#readme",
   "dependencies": {
     "fs-extra": "^6.0.1",
+    "next": "^6.0.3",
+    "next-routes": "^1.4.2",
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1",
     "solc": "^0.4.24",
     "truffle-hdwallet-provider": "0.0.3",
     "web3": "^1.0.0-beta.34"
