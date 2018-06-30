@@ -1,12 +1,13 @@
 const Web3 = require('web3')
+const config = require('config')
 const HDWalletProvider = require('truffle-hdwallet-provider')
 const ProjectList = require('../compiled/ProjectList.json')
 const address = require('../address.json')
 
 // 配置 provider
 const provider = new HDWalletProvider(
-  'diesel hill conduct talk educate section giant salon tape vault genre swap',
-  'https://rinkeby.infura.io/1E2S9RJLUvKKzy7rf1Mn '
+  config.get('hdwallet'),
+  config.get('infuraUrl')
 )
 
 // 初始化 web3
